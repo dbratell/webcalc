@@ -3,7 +3,9 @@
 <!-- Copyright Daniel Bratell -->
 <!-- TODO: Modulo, trigonometry -->
 <!-- TODO: 12.12 - 32 (ugly) -->
+<!-- TODO: 1.1 - 1 (ugly) -->
 <!-- Constants: Pi and e -->
+<!-- Thanks to http://ie.microsoft.com/Testdrive/Graphics/CSSGradientBackgroundMaker/Default.html -->
 <head>
 <title>Calculator</title>
 <meta name="description" content="Fast, simple and small calculator controllable by touch, mouse or keyboard." />
@@ -17,28 +19,36 @@ html, body {
   -moz-user-select: none; /* Firefox */
   -ms-user-select: none; /* Internet Explorer */
   -webkit-user-select: none; /* Opera */
+  background-image: linear-gradient(to bottom right, #F2EEEE 0%, #FFFFFF 100%);
 }
 #resultouter, #keypad {
   width: 95vw;
+  border: 1px solid lime;
 }
 #resultouter { 
   height: 15vh;
   border: 1vw solid;
-  margin-bottom: 5vw;
+  margin-bottom: 3vh;
   font-family: monospace;
   text-align: right;
   font-size: 200%;
   overflow: hidden;
   text-overflow: ellipsis;
+  background-image: linear-gradient(to bottom right, #E2E2E2 0%, #FFFFFF 100%);
 }
 
-#keypad { 
-  height: 70vh; 
+#keypad {
+  text-align: center;
+}
+#keypadinner {
+  height: 65vh; 
   overflow: hidden;
   margin-left: auto;
   margin-right: auto;
+  display: inline-block;
   border: 1px solid red;
 }
+
 .button { 
   cursor: default;
   text-align: center;
@@ -46,9 +56,9 @@ html, body {
   border: 0.5vw solid #777;
   font-family: monospace;
   width: 10vw;
-  height: 10vh;
+  height: 9.5vh;
   margin: 1vh 1vw;
-  background-image: linear-gradient(to bottom right, #FFFFFF 0%, #EBEBEB 100%);
+  background-image: linear-gradient(to bottom right, #FFFFFF 0%, #E2E2E2 100%);
 }
 
 /* To center things vertically. */
@@ -60,8 +70,16 @@ div.button > div, div#resultouter > div#result {
   transform: translateY(-50%);
 }
 
-.button#hover {
-background: #bbb;
+.button:hover {
+  background-image: linear-gradient(to bottom right, #FFFFFF 0%, #BBBBBB 100%);
+  transition: background-image 2s;
+}
+.button:active {
+  background-image: linear-gradient(to bottom right, #E2E2E2 0%, #FFFFFF 100%);
+}
+address { 
+  text-align: right;
+  font-size: 50% 
 }
 </style>
 <script>
@@ -146,6 +164,8 @@ function dobuttonpress(buttonString) {
     if (window.isInputActive) {
 	  var num = toNumber(window.activeInput);
 	  window.result = "" + Math.sqrt(num);
+	  window.isInputActive = false;
+	  window.activeInput = "";
 	} else {
 	  window.result = Math.sqrt(window.result);
 	}
@@ -175,6 +195,11 @@ function dobuttonpress(buttonString) {
 	window.isInputActive = true;
 	window.isError = false;
 	updateResultDisplay();
+  } else if (buttonString == "backspace") {
+    if (window.isInputActive && window.activeInput.length > 0) {
+	  window.activeInput = window.activeInput.substring(0, window.activeInput.length - 1);
+      updateResultDisplay();
+	}
   } else if (buttonString == "mul" ||
              buttonString == "add" ||
 			 buttonString == "sub" ||
@@ -231,6 +256,9 @@ function keydowned(ev) {
     dobuttonpress("esc");
   } else if (ev.keyCode == 13) { /* ENTER */
     dobuttonpress("equals");
+  } else if (ev.keyCode == 8) { /* BACKSPACE */
+    dobuttonpress("backspace");
+	ev.preventDefault(); /* Some browsers go back in history when you press BACKSPACE. */
   }
 }
 
@@ -244,7 +272,7 @@ window.onload = init;
 <body>
 <div id=debug><span id=resultval></span> <span id=command></span> <span id=activeInput><span></div>
 <div id=resultouter><div id=result></div></div>
-<div id=keypad>
+<div id=keypad><div id=keypadinner>
 <script>
 COLS = 4;
 function addButtons() {
@@ -252,17 +280,17 @@ function addButtons() {
     ["esc", "C"], 
     ["sqrt", "&#8730;x"],
     ["sqr", "x&#xB2;"],
-    ["sub", "-"],
+    ["div", "/"],
 
     ["7", "7"],
     ["8", "8"],
     ["9", "9"],
-    ["div", "/"],
+    ["mul", "*"],
 
     ["4", "4"],
     ["5", "5"],
     ["6", "6"],
-    ["mul", "*"],
+    ["sub", "-"],
 
     ["1", "1"],
     ["2", "2"],
@@ -312,7 +340,7 @@ addButtons();
 <div class=button onclick="dobuttonpress(this.id.substring(6));" id=buttonnegate>&#xB1;</div>
 <div class=button onclick="dobuttonpress(this.id.substring(6));" id=buttonequals>=</div>
 -->
-</div>
+</div></div>
 <hr>
 <address>
 Copyright Daniel Bratell - All Rights Reserved
