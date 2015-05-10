@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<!-- Copyright Daniel Bratell -->
+<!-- TODO: Modulo, trigonometry -->
+<!-- TODO: 12.12 - 32 (ugly) -->
+<!-- Constants: Pi and e -->
+<head>
+<title>Calculator</title>
+<meta name="description" content="Fast, simple and small calculator controllable by touch, mouse or keyboard." />
+<meta name="robots" content="nosnippet, noarchive" />
+<style>
+html, body { 
+  width: 100%; height: 100%; 
+  overflow: hidden;
+  font-size: 4vh;
+  color: #777;
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer */
+  -webkit-user-select: none; /* Opera */
+}
+#resultouter, #keypad {
+  width: 95vw;
+}
+#resultouter { 
+  height: 15vh;
+  border: 1vw solid;
+  margin-bottom: 5vw;
+  font-family: monospace;
+  text-align: right;
+  font-size: 200%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#keypad { 
+  height: 70vh; 
+  overflow: hidden;
+  margin-left: auto;
+  margin-right: auto;
+  border: 1px solid red;
+}
+.button { 
+  cursor: default;
+  text-align: center;
+  display: inline-block;
+  border: 0.5vw solid #777;
+  font-family: monospace;
+  width: 10vw;
+  height: 10vh;
+  margin: 1vh 1vw;
+  background-image: linear-gradient(to bottom right, #FFFFFF 0%, #EBEBEB 100%);
+}
+
+/* To center things vertically. */
+div.button > div, div#resultouter > div#result {
+  position: relative;
+  top: 50%;
+  -webkit-transform: translateY(-50%);
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+}
+
+.button#hover {
+background: #bbb;
+}
+</style>
+<script>
+window.result = 0;
+window.isInputActive = false;
+window.activeInput = "";
+window.isError = false;
+window.error = "";
+window.activeCommand = "";
+
+function updateResultDisplay()
+{
+  if (window.isError) {
+	var displayString = window.error;
+  } else if (window.isInputActive) {
+	var displayString = window.activeInput;
+  } else {
+    var resultString = "" + window.result;
+	var displayString = resultString;
+  }
+  document.getElementById("result").innerHTML = displayString;
+  
+  /* Debug */
+  document.getElementById("resultval").innerHTML = window.result;
+  document.getElementById("command").innerHTML = window.activeCommand;
+  if (document.isInputActive)
+    document.getElementById("activeInput").innerHTML = window.activeInput;
+  else
+    document.getElementById("activeInput").innerHTML = "<em>" + window.activeInput + "</em>";
+}
+
+function toNumber(str) {
+  return Number(str);
+}
+
+function calcCommand(arg1, operation, arg2) {
+  if (operation == "add") {
+    return arg1 + arg2;
+  }
+  if (operation == "sub") {
+    return arg1 - arg2;
+  }
+  if (operation == "mul") {
+    return arg1 * arg2;
+  }
+  if (operation == "div") {
+    return arg1 / arg2;
+  }
+}
+
+function dobuttonpress(buttonString) {
+  if (buttonString == "esc") {
+    if (!window.isInputActive) {
+	    window.result = 0;
+	}
+    window.isError = false;
+    window.error = "";
+    window.isInputActive = false;
+	window.activeInput = "";
+	window.activeCommand = "";
+	updateResultDisplay();
+  } else if (buttonString == "negate") {
+    if (window.isInputActive) {
+	  if (window.activeInput.substring(0,1) == "-") {
+        window.activeInput = window.activeInput.substring(1);
+	  } else {
+	    window.activeInput = "-" + window.activeInput;
+	  }
+	} else {
+	  window.result = -window.result;
+	}
+	updateResultDisplay();
+  } else if (buttonString == "sqr") {
+    if (window.isInputActive) {
+	  var num = toNumber(window.activeInput);
+	  window.result = "" + (num * num);
+	} else {
+	  window.result = window.result * window.result;
+	}
+	updateResultDisplay();
+  } else if (buttonString == "sqrt") {
+    if (window.isInputActive) {
+	  var num = toNumber(window.activeInput);
+	  window.result = "" + Math.sqrt(num);
+	} else {
+	  window.result = Math.sqrt(window.result);
+	}
+	updateResultDisplay();
+  } else if (buttonString == "equals") {
+    if (window.isInputActive) {
+	  if (window.activeCommand == "") {
+	    window.result = toNumber(window.activeInput);
+	  }
+	  else if (window.activeInput == "") {
+	    window.result = calCommand(window.result, window.activeCommand, window.result);
+	  } else {
+	    window.result = calcCommand(window.result, window.activeCommand, toNumber(activeInput));
+	  }
+	  window.isInputActive = false;
+	  window.activeInput = "";
+	  window.activeCommand = "";
+	  updateResultDisplay();
+	} else {
+	  /* TODO: Repeat last command */
+	}
+	updateResultDisplay();
+  } else if (buttonString.length == 1 &&
+    buttonString.charCodeAt(0) >= "0".charCodeAt(0) && 
+    buttonString.charCodeAt(0) <= "9".charCodeAt(0)) {
+    window.activeInput += buttonString;
+	window.isInputActive = true;
+	window.isError = false;
+	updateResultDisplay();
+  } else if (buttonString == "mul" ||
+             buttonString == "add" ||
+			 buttonString == "sub" ||
+			 buttonString == "div" ||
+			 buttonString == "mod") {
+	if (window.isInputActive && window.activeCommand != "") {
+	  dobuttonpress("equals");
+	} else if (window.isInputActive) {
+      window.result = toNumber(window.activeInput);
+	  window.activeInput = "";
+	  window.isInputActive = false;
+	}
+    window.activeCommand = buttonString;
+	updateResultDisplay();
+  } else if (buttonString == "point") {
+    if (window.isInputActive) {
+	  if (window.activeInput == "") {
+	    window.activeInput = "0.";
+		updateResultDisplay();
+	  } else {
+	    window.activeInput = window.activeInput + "."; /* TODO: Localize display? */
+		updateResultDisplay();
+	  }
+	}
+  } else {
+    window.error = "Command " + buttonString + " not supported";
+	window.isError = true;
+	window.isInputActive = false;
+	window.activeInput = "";
+	updateResultDisplay();
+  }
+}
+
+function keypressed(ev) {
+  if (ev.charCode >= "0".charCodeAt(0) && 
+      ev.charCode <= "9".charCodeAt(0)) {
+    dobuttonpress(String.fromCharCode(ev.charCode));
+  } else if (ev.charCode == ".".charCodeAt(0) ||
+             ev.charCode == ",".charCodeAt(0)) {
+    dobuttonpress("point");
+  } else if (ev.charCode == "/".charCodeAt(0)) {
+    dobuttonpress("div");
+  } else if (ev.charCode == "*".charCodeAt(0)) {
+    dobuttonpress("mul");
+  } else if (ev.charCode == "-".charCodeAt(0)) {
+    dobuttonpress("sub");
+  } else if (ev.charCode == "+".charCodeAt(0)) {
+    dobuttonpress("add");
+  }
+}
+
+function keydowned(ev) {
+  if (ev.keyCode == 27) { /* ESC */
+    dobuttonpress("esc");
+  } else if (ev.keyCode == 13) { /* ENTER */
+    dobuttonpress("equals");
+  }
+}
+
+function init() {
+  updateResultDisplay();
+  document.body.onkeypress = keypressed;
+  document.body.onkeydown = keydowned;
+}
+window.onload = init;
+</script>
+<body>
+<div id=debug><span id=resultval></span> <span id=command></span> <span id=activeInput><span></div>
+<div id=resultouter><div id=result></div></div>
+<div id=keypad>
+<script>
+COLS = 4;
+function addButtons() {
+  var data = [
+    ["esc", "C"], 
+    ["sqrt", "&#8730;x"],
+    ["sqr", "x&#xB2;"],
+    ["sub", "-"],
+
+    ["7", "7"],
+    ["8", "8"],
+    ["9", "9"],
+    ["div", "/"],
+
+    ["4", "4"],
+    ["5", "5"],
+    ["6", "6"],
+    ["mul", "*"],
+
+    ["1", "1"],
+    ["2", "2"],
+    ["3", "3"],
+    ["add", "+"],
+
+    ["0", "0"],
+    ["point", "."],
+    ["negate", "&#xB1;"],
+    ["equals", "="]
+  ];
+  for (var i = 0; i < data.length; i++) {
+    var cmd = data[i][0];
+	var str = data[i][1];
+	if (i % COLS == 0 && i != 0) {
+	  document.write("<br>");
+	}
+    document.write("<div class=button onclick=\"dobuttonpress('" + cmd + "');\" id=button"+ cmd + ">" + 
+	               "<div>" + str + "</div></div>");
+  }
+}
+addButtons();
+</script>
+<!--
+<div class=button onclick="dobuttonpress(this.id.substring(6));" id=buttonesc>C</div>
+<div class=button onclick="dobuttonpress(this.id.substring(6));" id=buttonsqrt>&#8730;x</div>
+<div class=button onclick="dobuttonpress(this.id.substring(6));" id=buttonsqr>x&#xB2;</div>
+<div class=button onclick="dobuttonpress(this.id.substring(6));" id=buttonsub>-</div>
+<br>
+<div class=button onclick="dobuttonpress(this.id.substring(6));" id=button7>7</div>
+<div class=button onclick="dobuttonpress(this.id.substring(6));" id=button8>8</div>
+<div class=button onclick="dobuttonpress(this.id.substring(6));" id=button9>9</div>
+<div class=button onclick="dobuttonpress(this.id.substring(6));" id=buttondiv>/</div>
+<br>
+<div class=button onclick="dobuttonpress(this.id.substring(6));" id=button4>4</div>
+<div class=button onclick="dobuttonpress(this.id.substring(6));" id=button5>5</div>
+<div class=button onclick="dobuttonpress(this.id.substring(6));" id=button6>6</div>
+<div class=button onclick="dobuttonpress(this.id.substring(6));" id=buttonmul>*</div>
+<br>
+<div class=button onclick="dobuttonpress(this.id.substring(6));" id=button1>1</div>
+<div class=button onclick="dobuttonpress(this.id.substring(6));" id=button2>2</div>
+<div class=button onclick="dobuttonpress(this.id.substring(6));" id=button3>3</div>
+<div class=button onclick="dobuttonpress(this.id.substring(6));" id=buttonadd>+</div>
+<br>
+<div class=button onclick="dobuttonpress(this.id.substring(6));" id=button0>0</div>
+<div class=button onclick="dobuttonpress(this.id.substring(6));" id=buttonpoint>.</div>
+<div class=button onclick="dobuttonpress(this.id.substring(6));" id=buttonnegate>&#xB1;</div>
+<div class=button onclick="dobuttonpress(this.id.substring(6));" id=buttonequals>=</div>
+-->
+</div>
+<hr>
+<address>
+Copyright Daniel Bratell - All Rights Reserved
+</address>
+</body>
+</html>
