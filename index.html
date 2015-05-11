@@ -4,7 +4,10 @@
 <!-- TODO: Modulo, trigonometry -->
 <!-- TODO: 12.12 - 32 (ugly) -->
 <!-- TODO: 1.1 - 1 (ugly) -->
+<!-- TODO: Make sure the number all fit at all time. (1.2121212121212121e-21) -->
 <!-- Constants: Pi and e -->
+<!-- TODO: Gfx effect when keyboard is used. -->
+<!-- TODO: Transitions (make gradients alpha shadow? since gradients don't animate) -->
 <!-- Thanks to http://ie.microsoft.com/Testdrive/Graphics/CSSGradientBackgroundMaker/Default.html -->
 <head>
 <title>Calculator</title>
@@ -14,6 +17,7 @@
 html, body { 
   width: 100%; height: 100%; 
   overflow: hidden;
+  font-size: 24px; /* Assuming 600x600 */
   font-size: 4vh;
   color: #777;
   -moz-user-select: none; /* Firefox */
@@ -22,11 +26,13 @@ html, body {
   background-image: linear-gradient(to bottom right, #F2EEEE 0%, #FFFFFF 100%);
 }
 #resultouter, #keypad {
+  width: 570px; /* Assuming 600x600 */
   width: 95vw;
-  border: 1px solid lime;
 }
 #resultouter { 
+  height: 90px; /* Assuming 600x600 */
   height: 15vh;
+  border: 6px solid; /* Assuming 600x600 */
   border: 1vw solid;
   margin-bottom: 3vh;
   font-family: monospace;
@@ -41,23 +47,28 @@ html, body {
   text-align: center;
 }
 #keypadinner {
+  height: 390px; /* Assuming 600x600 */
   height: 65vh; 
   overflow: hidden;
   margin-left: auto;
   margin-right: auto;
   display: inline-block;
-  border: 1px solid red;
 }
 
 .button { 
   cursor: default;
   text-align: center;
   display: inline-block;
+  border: 3px solid #777; /* Assuming 600x600 */
   border: 0.5vw solid #777;
   font-family: monospace;
-  width: 10vw;
-  height: 9.5vh;
-  margin: 1vh 1vw;
+  width: 63px; /* Assuming 600x600 */
+  width: 10.5vw;
+  min-width: 2.5ex;
+  height: 60px; /* Assuming 600x600 */
+  height: 10vh;
+  margin: 3px 3px; /* Assuming 600x600 */
+  margin: .5vh .5vw;
   background-image: linear-gradient(to bottom right, #FFFFFF 0%, #E2E2E2 100%);
 }
 
@@ -79,7 +90,9 @@ div.button > div, div#resultouter > div#result {
 }
 address { 
   text-align: right;
-  font-size: 50% 
+  font-size: 50%;
+  padding: 0 60px; /* Assuming 600x600 */
+  padding: 0 10vw;
 }
 </style>
 <script>
@@ -89,6 +102,8 @@ window.activeInput = "";
 window.isError = false;
 window.error = "";
 window.activeCommand = "";
+window.lastCommand = "";
+window.lastCommandArgument = "";
 
 function updateResultDisplay()
 {
@@ -109,6 +124,9 @@ function updateResultDisplay()
     document.getElementById("activeInput").innerHTML = window.activeInput;
   else
     document.getElementById("activeInput").innerHTML = "<em>" + window.activeInput + "</em>";
+
+  document.getElementById("lastCommand").innerHTML = window.lastCommand;
+  document.getElementById("lastCommandArgument").innerHTML = window.lastCommandArgument;
 }
 
 function toNumber(str) {
@@ -140,6 +158,8 @@ function dobuttonpress(buttonString) {
     window.isInputActive = false;
 	window.activeInput = "";
 	window.activeCommand = "";
+	window.lastCommand = "";
+	window.lastCommandArgument = "";
 	updateResultDisplay();
   } else if (buttonString == "negate") {
     if (window.isInputActive) {
@@ -171,30 +191,45 @@ function dobuttonpress(buttonString) {
 	}
 	updateResultDisplay();
   } else if (buttonString == "equals") {
+    if (!window.isInputActive && window.lastCommand != "") {
+      window.activeInput = window.lastCommandArgument;
+	  window.isInputActive = true;
+	  window.activeCommand = window.lastCommand;
+	}
     if (window.isInputActive) {
 	  if (window.activeCommand == "") {
 	    window.result = toNumber(window.activeInput);
 	  }
 	  else if (window.activeInput == "") {
 	    window.result = calCommand(window.result, window.activeCommand, window.result);
+		window.lastCommand = window.activeCommand;
+		window.lastCommandArgument = "" + window.result;
 	  } else {
-	    window.result = calcCommand(window.result, window.activeCommand, toNumber(activeInput));
+	    window.result = calcCommand(window.result, window.activeCommand, toNumber(window.activeInput));
+		window.lastCommand = window.activeCommand;
+		window.lastCommandArgument = window.activeInput;
 	  }
 	  window.isInputActive = false;
 	  window.activeInput = "";
 	  window.activeCommand = "";
 	  updateResultDisplay();
-	} else {
-	  /* TODO: Repeat last command */
 	}
-	updateResultDisplay();
   } else if (buttonString.length == 1 &&
     buttonString.charCodeAt(0) >= "0".charCodeAt(0) && 
     buttonString.charCodeAt(0) <= "9".charCodeAt(0)) {
-    window.activeInput += buttonString;
-	window.isInputActive = true;
-	window.isError = false;
+	if (window.activeInput != "0" || buttonString != "0") {
+	    if (window.activeInput == "0") {
+		  /* overwrite */
+		  window.activeInput = buttonString;
+		} else {
+		  window.activeInput += buttonString;
+		}
+		window.isInputActive = true;
+		window.isError = false;
+		window.lastCommand = "";
+		window.lastCommandArgument = "";
 	updateResultDisplay();
+	}
   } else if (buttonString == "backspace") {
     if (window.isInputActive && window.activeInput.length > 0) {
 	  window.activeInput = window.activeInput.substring(0, window.activeInput.length - 1);
@@ -237,17 +272,23 @@ function keypressed(ev) {
   if (ev.charCode >= "0".charCodeAt(0) && 
       ev.charCode <= "9".charCodeAt(0)) {
     dobuttonpress(String.fromCharCode(ev.charCode));
+	ev.preventDefault();
   } else if (ev.charCode == ".".charCodeAt(0) ||
              ev.charCode == ",".charCodeAt(0)) {
     dobuttonpress("point");
+	ev.preventDefault();
   } else if (ev.charCode == "/".charCodeAt(0)) {
     dobuttonpress("div");
+	ev.preventDefault();
   } else if (ev.charCode == "*".charCodeAt(0)) {
     dobuttonpress("mul");
+	ev.preventDefault();
   } else if (ev.charCode == "-".charCodeAt(0)) {
     dobuttonpress("sub");
+	ev.preventDefault();
   } else if (ev.charCode == "+".charCodeAt(0)) {
     dobuttonpress("add");
+	ev.preventDefault();
   }
 }
 
@@ -270,7 +311,8 @@ function init() {
 window.onload = init;
 </script>
 <body>
-<div id=debug><span id=resultval></span> <span id=command></span> <span id=activeInput><span></div>
+<div id=debug><span id=resultval></span> <span id=command></span> <span id=activeInput></span>
+(<span id=lastCommand></span> <span id=lastCommandArgument></span>)</div>
 <div id=resultouter><div id=result></div></div>
 <div id=keypad><div id=keypadinner>
 <script>
