@@ -9,6 +9,7 @@
 <!-- TODO: Gfx effect when keyboard is used. -->
 <!-- TODO: Transitions (make gradients alpha shadow? since gradients don't animate) -->
 <!-- Thanks to http://ie.microsoft.com/Testdrive/Graphics/CSSGradientBackgroundMaker/Default.html -->
+<!-- TODO: Localize display? -->
 <head>
 <title>Calculator</title>
 <meta name="description" content="Fast, simple and small calculator controllable by touch, mouse or keyboard." />
@@ -180,23 +181,20 @@ function dobuttonpress(buttonString) {
 	  window.result = -window.result;
 	}
 	updateResultDisplay();
-  } else if (buttonString == "sqr") {
-    if (window.isInputActive) {
-	  var num = toNumber(window.activeInput);
-	  window.result = "" + (num * num);
+  } else if (buttonString == "sqr" || buttonString == "sqrt") {
+	if (window.isInputActive) {
+	  var arg = toNumber(window.activeInput);;
 	} else {
-	  window.result = window.result * window.result;
+	  var arg = window.result;
 	}
-	updateResultDisplay();
-  } else if (buttonString == "sqrt") {
-    if (window.isInputActive) {
-	  var num = toNumber(window.activeInput);
-	  window.result = "" + Math.sqrt(num);
+	if (buttonString == "sqr") {
+	  window.result = arg * arg;
+	} else {
+		/* buttonString == "sqrt" */
+	  window.result = Math.sqrt(arg);
+	}
 	  window.isInputActive = false;
 	  window.activeInput = "";
-	} else {
-	  window.result = Math.sqrt(window.result);
-	}
 	updateResultDisplay();
   } else if (buttonString == "equals") {
     if (!window.isInputActive && window.lastCommand != "") {
@@ -261,12 +259,22 @@ function dobuttonpress(buttonString) {
     if (window.isInputActive) {
 	  if (window.activeInput == "") {
 	    window.activeInput = "0.";
-		updateResultDisplay();
-	  } else {
-	    window.activeInput = window.activeInput + "."; /* TODO: Localize display? */
-		updateResultDisplay();
+	  } else if (window.activeInput.indexOf(".") == -1) {
+	    window.activeInput = window.activeInput + ".";
 	  }
+	} else {
+	    window.activeInput = "0.";
 	}
+	window.isInputActive = true;
+	updateResultDisplay();
+  } else if (buttonString == "pi") {
+		window.isInputActive = true;
+	    window.activeInput = "" + Math.PI;
+	updateResultDisplay();
+  } else if (buttonString == "e") {
+		window.isInputActive = true;
+	    window.activeInput = "" + Math.E;
+	updateResultDisplay();
   } else {
     window.error = "Command " + buttonString + " not supported";
 	window.isError = true;
@@ -305,6 +313,8 @@ var SIMPLE_CMD_MAP = {
 				"m": "mod",
 				".": "point",
 				",": "point",
+				"p": "pi",
+				"e": "e",
 				};
 
 for (var i = 0; i < 10; i++) {
