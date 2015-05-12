@@ -7,7 +7,7 @@
 <!-- TODO: Make sure the number all fit at all time. (1.2121212121212121e-21) -->
 <!-- Constants: Pi and e -->
 <!-- TODO: Gfx effect when keyboard is used. -->
-<!-- TODO: Transitions (make gradients alpha shadow? since gradients don't animate) -->
+<!-- TODO: Transitions (make gradients alpha shadow? since gradients do not animate) -->
 <!-- Thanks to http://ie.microsoft.com/Testdrive/Graphics/CSSGradientBackgroundMaker/Default.html -->
 <!-- TODO: Localize display? -->
 <head>
@@ -15,8 +15,8 @@
 <meta name="description" content="Fast, simple and small calculator controllable by touch, mouse or keyboard." />
 <meta name="robots" content="nosnippet, noarchive" />
 <style>
-html, body { 
-  width: 100%; height: 100%; 
+html, body {
+  width: 100%; height: 100%;
   overflow: hidden;
   font-size: 24px; /* Assuming 600x600 */
   font-size: 4vh;
@@ -27,7 +27,7 @@ html, body {
   width: 570px; /* Assuming 600x600 */
   width: 95vw;
 }
-#resultouter { 
+#resultouter {
   height: 90px; /* Assuming 600x600 */
   height: 15vh;
   border: 6px solid; /* Assuming 600x600 */
@@ -49,14 +49,14 @@ html, body {
 }
 #keypadinner {
   height: 390px; /* Assuming 600x600 */
-  height: 65vh; 
+  height: 65vh;
   overflow: hidden;
   margin-left: auto;
   margin-right: auto;
   display: inline-block;
 }
 
-.button { 
+.button {
   cursor: default;
   text-align: center;
   display: inline-block;
@@ -94,7 +94,7 @@ div.button > div, div#resultouter > div#result {
   background-image: linear-gradient(to bottom right, rgba(0, 0, 0, 0.0) 0%, rgba(0, 0, 0, 0.2) 100%);
   transition: background 0s;
 }
-address { 
+address {
   text-align: right;
   font-size: 50%;
   padding: 0 60px; /* Assuming 600x600 */
@@ -113,243 +113,243 @@ window.lastCommandArgument = "";
 
 function updateResultDisplay()
 {
-  if (window.isError) {
-	var displayString = window.error;
-  } else if (window.isInputActive) {
-	var displayString = window.activeInput;
-  } else {
-    var resultString = "" + window.result;
-	var displayString = resultString;
-  }
-  document.getElementById("result").innerHTML = displayString;
-  
-  /* Debug */
-  document.getElementById("resultval").innerHTML = window.result;
-  document.getElementById("command").innerHTML = window.activeCommand;
-  if (document.isInputActive)
-    document.getElementById("activeInput").innerHTML = window.activeInput;
-  else
-    document.getElementById("activeInput").innerHTML = "<em>" + window.activeInput + "</em>";
+    if (window.isError) {
+        var displayString = window.error;
+    } else if (window.isInputActive) {
+        var displayString = window.activeInput;
+    } else {
+        var resultString = "" + window.result;
+        var displayString = resultString;
+    }
+    document.getElementById("result").innerHTML = displayString;
 
-  document.getElementById("lastCommand").innerHTML = window.lastCommand;
-  document.getElementById("lastCommandArgument").innerHTML = window.lastCommandArgument;
+    /* Debug */
+    document.getElementById("resultval").innerHTML = window.result;
+    document.getElementById("command").innerHTML = window.activeCommand;
+    if (document.isInputActive)
+        document.getElementById("activeInput").innerHTML = window.activeInput;
+    else
+        document.getElementById("activeInput").innerHTML = "<em>" + window.activeInput + "</em>";
+
+    document.getElementById("lastCommand").innerHTML = window.lastCommand;
+    document.getElementById("lastCommandArgument").innerHTML = window.lastCommandArgument;
 }
 
 function toNumber(str) {
-  return Number(str);
+    return Number(str);
 }
 
 function calcCommand(arg1, operation, arg2) {
-  if (operation == "add") {
-    return arg1 + arg2;
-  }
-  if (operation == "sub") {
-    return arg1 - arg2;
-  }
-  if (operation == "mul") {
-    return arg1 * arg2;
-  }
-  if (operation == "div") {
-    return arg1 / arg2;
-  }
-  if (operation == "mod") {
-    return arg1 % arg2;
-  }
+    if (operation == "add") {
+        return arg1 + arg2;
+    }
+    if (operation == "sub") {
+        return arg1 - arg2;
+    }
+    if (operation == "mul") {
+        return arg1 * arg2;
+    }
+    if (operation == "div") {
+        return arg1 / arg2;
+    }
+    if (operation == "mod") {
+        return arg1 % arg2;
+    }
 }
 
 function dobuttonpress(buttonString) {
-  if (buttonString == "esc") {
-    if (!window.isInputActive) {
-	    window.result = 0;
-	}
-    window.isError = false;
-    window.error = "";
-    window.isInputActive = false;
-	window.activeInput = "";
-	window.activeCommand = "";
-	window.lastCommand = "";
-	window.lastCommandArgument = "";
-	updateResultDisplay();
-  } else if (buttonString == "negate") {
-    if (window.isInputActive) {
-	  if (window.activeInput.substring(0,1) == "-") {
-        window.activeInput = window.activeInput.substring(1);
-	  } else {
-	    window.activeInput = "-" + window.activeInput;
-	  }
-	} else {
-	  window.result = -window.result;
-	}
-	updateResultDisplay();
-  } else if (buttonString == "sqr" || buttonString == "sqrt") {
-	if (window.isInputActive) {
-	  var arg = toNumber(window.activeInput);;
-	} else {
-	  var arg = window.result;
-	}
-	if (buttonString == "sqr") {
-	  window.result = arg * arg;
-	} else {
-		/* buttonString == "sqrt" */
-	  window.result = Math.sqrt(arg);
-	}
-	  window.isInputActive = false;
-	  window.activeInput = "";
-	updateResultDisplay();
-  } else if (buttonString == "equals") {
-    if (!window.isInputActive && window.lastCommand != "") {
-      window.activeInput = window.lastCommandArgument;
-	  window.isInputActive = true;
-	  window.activeCommand = window.lastCommand;
-	}
-    if (window.isInputActive) {
-	  if (window.activeCommand == "") {
-	    window.result = toNumber(window.activeInput);
-	  }
-	  else if (window.activeInput == "") {
-	    window.result = calcCommand(window.result, window.activeCommand, window.result);
-		window.lastCommand = window.activeCommand;
-		window.lastCommandArgument = "" + window.result;
-	  } else {
-	    window.result = calcCommand(window.result, window.activeCommand, toNumber(window.activeInput));
-		window.lastCommand = window.activeCommand;
-		window.lastCommandArgument = window.activeInput;
-	  }
-	  window.isInputActive = false;
-	  window.activeInput = "";
-	  window.activeCommand = "";
-	  updateResultDisplay();
-	}
-  } else if (buttonString.length == 1 &&
-    buttonString.charCodeAt(0) >= "0".charCodeAt(0) && 
-    buttonString.charCodeAt(0) <= "9".charCodeAt(0)) {
-	if (window.activeInput != "0" || buttonString != "0") {
-	    if (window.activeInput == "0") {
-		  /* overwrite */
-		  window.activeInput = buttonString;
-		} else {
-		  window.activeInput += buttonString;
-		}
-		window.isInputActive = true;
-		window.isError = false;
-		window.lastCommand = "";
-		window.lastCommandArgument = "";
-	updateResultDisplay();
-	}
-  } else if (buttonString == "backspace") {
-    if (window.isInputActive && window.activeInput.length > 0) {
-	  window.activeInput = window.activeInput.substring(0, window.activeInput.length - 1);
-      updateResultDisplay();
-	}
-  } else if (buttonString == "mul" ||
-             buttonString == "add" ||
-			 buttonString == "sub" ||
-			 buttonString == "div" ||
-			 buttonString == "mod") {
-	if (window.isInputActive && window.activeCommand != "") {
-	  dobuttonpress("equals");
-	} else if (window.isInputActive) {
-      window.result = toNumber(window.activeInput);
-	  window.activeInput = "";
-	  window.isInputActive = false;
-	}
-    window.activeCommand = buttonString;
-	updateResultDisplay();
-  } else if (buttonString == "point") {
-    if (window.isInputActive) {
-	  if (window.activeInput == "") {
-	    window.activeInput = "0.";
-	  } else if (window.activeInput.indexOf(".") == -1) {
-	    window.activeInput = window.activeInput + ".";
-	  }
-	} else {
-	    window.activeInput = "0.";
-	}
-	window.isInputActive = true;
-	updateResultDisplay();
-  } else if (buttonString == "pi") {
-		window.isInputActive = true;
-	    window.activeInput = "" + Math.PI;
-	updateResultDisplay();
-  } else if (buttonString == "e") {
-		window.isInputActive = true;
-	    window.activeInput = "" + Math.E;
-	updateResultDisplay();
-  } else {
-    window.error = "Command " + buttonString + " not supported";
-	window.isError = true;
-	window.isInputActive = false;
-	window.activeInput = "";
-	updateResultDisplay();
-  }
+    if (buttonString == "esc") {
+        if (!window.isInputActive) {
+            window.result = 0;
+        }
+        window.isError = false;
+        window.error = "";
+        window.isInputActive = false;
+        window.activeInput = "";
+        window.activeCommand = "";
+        window.lastCommand = "";
+        window.lastCommandArgument = "";
+        updateResultDisplay();
+    } else if (buttonString == "negate") {
+        if (window.isInputActive) {
+            if (window.activeInput.substring(0,1) == "-") {
+                window.activeInput = window.activeInput.substring(1);
+            } else {
+                window.activeInput = "-" + window.activeInput;
+            }
+        } else {
+            window.result = -window.result;
+        }
+        updateResultDisplay();
+    } else if (buttonString == "sqr" || buttonString == "sqrt") {
+        if (window.isInputActive) {
+            var arg = toNumber(window.activeInput);;
+        } else {
+            var arg = window.result;
+        }
+        if (buttonString == "sqr") {
+            window.result = arg * arg;
+        } else {
+            /* buttonString == "sqrt" */
+            window.result = Math.sqrt(arg);
+        }
+        window.isInputActive = false;
+        window.activeInput = "";
+        updateResultDisplay();
+    } else if (buttonString == "equals") {
+        if (!window.isInputActive && window.lastCommand != "") {
+            window.activeInput = window.lastCommandArgument;
+            window.isInputActive = true;
+            window.activeCommand = window.lastCommand;
+        }
+        if (window.isInputActive) {
+            if (window.activeCommand == "") {
+                window.result = toNumber(window.activeInput);
+            }
+            else if (window.activeInput == "") {
+                window.result = calcCommand(window.result, window.activeCommand, window.result);
+                window.lastCommand = window.activeCommand;
+                window.lastCommandArgument = "" + window.result;
+            } else {
+                window.result = calcCommand(window.result, window.activeCommand, toNumber(window.activeInput));
+                window.lastCommand = window.activeCommand;
+                window.lastCommandArgument = window.activeInput;
+            }
+            window.isInputActive = false;
+            window.activeInput = "";
+            window.activeCommand = "";
+            updateResultDisplay();
+        }
+    } else if (buttonString.length == 1 &&
+               buttonString.charCodeAt(0) >= "0".charCodeAt(0) &&
+               buttonString.charCodeAt(0) <= "9".charCodeAt(0)) {
+        if (window.activeInput != "0" || buttonString != "0") {
+            if (window.activeInput == "0") {
+                /* overwrite */
+                window.activeInput = buttonString;
+            } else {
+                window.activeInput += buttonString;
+            }
+            window.isInputActive = true;
+            window.isError = false;
+            window.lastCommand = "";
+            window.lastCommandArgument = "";
+            updateResultDisplay();
+        }
+    } else if (buttonString == "backspace") {
+        if (window.isInputActive && window.activeInput.length > 0) {
+            window.activeInput = window.activeInput.substring(0, window.activeInput.length - 1);
+            updateResultDisplay();
+        }
+    } else if (buttonString == "mul" ||
+               buttonString == "add" ||
+               buttonString == "sub" ||
+               buttonString == "div" ||
+               buttonString == "mod") {
+        if (window.isInputActive && window.activeCommand != "") {
+            dobuttonpress("equals");
+        } else if (window.isInputActive) {
+            window.result = toNumber(window.activeInput);
+            window.activeInput = "";
+            window.isInputActive = false;
+        }
+        window.activeCommand = buttonString;
+        updateResultDisplay();
+    } else if (buttonString == "point") {
+        if (window.isInputActive) {
+            if (window.activeInput == "") {
+                window.activeInput = "0.";
+            } else if (window.activeInput.indexOf(".") == -1) {
+                window.activeInput = window.activeInput + ".";
+            }
+        } else {
+            window.activeInput = "0.";
+        }
+        window.isInputActive = true;
+        updateResultDisplay();
+    } else if (buttonString == "pi") {
+        window.isInputActive = true;
+        window.activeInput = "" + Math.PI;
+        updateResultDisplay();
+    } else if (buttonString == "e") {
+        window.isInputActive = true;
+        window.activeInput = "" + Math.E;
+        updateResultDisplay();
+    } else {
+        window.error = "Command " + buttonString + " not supported";
+        window.isError = true;
+        window.isInputActive = false;
+        window.activeInput = "";
+        updateResultDisplay();
+    }
 }
 
 function highlightButton(buttonId) {
-	var elm = document.getElementById(buttonId);
-	if (elm) {
-	    elm.classList.add("activated");
-		window.setTimeout(function() {
-		                      elm.classList.remove("activated");
-							  }, 100);
+    var elm = document.getElementById(buttonId);
+    if (elm) {
+        elm.classList.add("activated");
+        window.setTimeout(function() {
+            elm.classList.remove("activated");
+        }, 100);
     }
 }
 
 function processEventTriggeredButtonCmd(ev, buttonCmd) {
-	dobuttonpress(buttonCmd);
-	var buttonId = "button" + buttonCmd;
-	highlightButton(buttonId);
-	ev.preventDefault(); /* Some browsers go back in history when you press BACKSPACE
-	                        and Opera has lots of interesting actions for numbers. */
+    dobuttonpress(buttonCmd);
+    var buttonId = "button" + buttonCmd;
+    highlightButton(buttonId);
+    ev.preventDefault(); /* Some browsers go back in history when you press BACKSPACE
+                            and Opera has lots of interesting actions for numbers. */
 }
 
 var SIMPLE_CMD_MAP = {
-                "r": "sqrt",
-                "s": "sqr",
-                "n": "negate",
-				"+": "add",
-				"-": "sub",
-				"*": "mul",
-				"/": "div",
-				"m": "mod",
-				".": "point",
-				",": "point",
-				"p": "pi",
-				"e": "e",
-				};
+    "r": "sqrt",
+    "s": "sqr",
+    "n": "negate",
+    "+": "add",
+    "-": "sub",
+    "*": "mul",
+    "/": "div",
+    "m": "mod",
+    ".": "point",
+    ",": "point",
+    "p": "pi",
+    "e": "e",
+};
 
 for (var i = 0; i < 10; i++) {
-  SIMPLE_CMD_MAP[("" + i)] = "" + i;
+    SIMPLE_CMD_MAP[("" + i)] = "" + i;
 }
 CMD_MAP = {};
 for (var key in SIMPLE_CMD_MAP) {
-  CMD_MAP[key.charCodeAt(0)] = SIMPLE_CMD_MAP[key];
+    CMD_MAP[key.charCodeAt(0)] = SIMPLE_CMD_MAP[key];
 }
 
 function keypressed(ev) {
-  var cmd = window.CMD_MAP[ev.charCode];
-  if (cmd != undefined) {
-    processEventTriggeredButtonCmd(ev, cmd);
-  }
+    var cmd = window.CMD_MAP[ev.charCode];
+    if (cmd != undefined) {
+        processEventTriggeredButtonCmd(ev, cmd);
+    }
 }
 
 function keydowned(ev) {
-  var buttonCmd = "";
-  if (ev.keyCode == 27) { /* ESC */
-    buttonCmd = "esc";
-  } else if (ev.keyCode == 13) { /* ENTER */
-    buttonCmd = "equals";
-  } else if (ev.keyCode == 8) { /* BACKSPACE */
-    buttonCmd = "backspace";
-  }
-  if (buttonCmd != "") {
-    processEventTriggeredButtonCmd(ev, buttonCmd);
-  }
+    var buttonCmd = "";
+    if (ev.keyCode == 27) { /* ESC */
+        buttonCmd = "esc";
+    } else if (ev.keyCode == 13) { /* ENTER */
+        buttonCmd = "equals";
+    } else if (ev.keyCode == 8) { /* BACKSPACE */
+        buttonCmd = "backspace";
+    }
+    if (buttonCmd != "") {
+        processEventTriggeredButtonCmd(ev, buttonCmd);
+    }
 }
 
 function init() {
-  updateResultDisplay();
-  document.body.onkeypress = keypressed;
-  document.body.onkeydown = keydowned;
+    updateResultDisplay();
+    document.body.onkeypress = keypressed;
+    document.body.onkeydown = keydowned;
 }
 window.onload = init;
 </script>
@@ -361,41 +361,41 @@ window.onload = init;
 <script>
 COLS = 4;
 function addButtons() {
-  var data = [
-    ["esc", "C"], 
-    ["sqrt", "&#8730;x"],
-    ["sqr", "x&#xB2;"],
-    ["div", "/"],
+    var data = [
+        ["esc", "C"],
+        ["sqrt", "&#8730;x"],
+        ["sqr", "x&#xB2;"],
+        ["div", "/"],
 
-    ["7", "7"],
-    ["8", "8"],
-    ["9", "9"],
-    ["mul", "*"],
+        ["7", "7"],
+        ["8", "8"],
+        ["9", "9"],
+        ["mul", "*"],
 
-    ["4", "4"],
-    ["5", "5"],
-    ["6", "6"],
-    ["sub", "-"],
+        ["4", "4"],
+        ["5", "5"],
+        ["6", "6"],
+        ["sub", "-"],
 
-    ["1", "1"],
-    ["2", "2"],
-    ["3", "3"],
-    ["add", "+"],
+        ["1", "1"],
+        ["2", "2"],
+        ["3", "3"],
+        ["add", "+"],
 
-    ["0", "0"],
-    ["point", "."],
-    ["negate", "&#xB1;"],
-    ["equals", "="]
-  ];
-  for (var i = 0; i < data.length; i++) {
-    var cmd = data[i][0];
-	var str = data[i][1];
-	if (i % COLS == 0 && i != 0) {
-	  document.write("<br>");
-	}
-    document.write("<div class=button onclick=\"dobuttonpress('" + cmd + "');\" id=button"+ cmd + ">" + 
-	               "<div>" + str + "</div></div>");
-  }
+        ["0", "0"],
+        ["point", "."],
+        ["negate", "&#xB1;"],
+        ["equals", "="]
+    ];
+    for (var i = 0; i < data.length; i++) {
+        var cmd = data[i][0];
+        var str = data[i][1];
+        if (i % COLS == 0 && i != 0) {
+            document.write("<br>");
+        }
+        document.write("<div class=button onclick=\"dobuttonpress('" + cmd + "');\" id=button"+ cmd + ">" +
+                       "<div>" + str + "</div></div>");
+    }
 }
 addButtons();
 </script>
