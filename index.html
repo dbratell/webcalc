@@ -69,7 +69,9 @@ html, body {
   height: 10vh;
   margin: 3px 3px; /* Assuming 600x600 */
   margin: .5vh .5vw;
-  background-image: linear-gradient(to bottom right, #FFFFFF 0%, #E2E2E2 100%);
+  background: #EEE;
+  background-image: linear-gradient(to bottom right, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.0) 100%);
+  transition: background 1s;
 }
 
 /* To center things vertically. */
@@ -82,11 +84,14 @@ div.button > div, div#resultouter > div#result {
 }
 
 .button:hover {
-  background-image: linear-gradient(to bottom right, #FFFFFF 0%, #BBBBBB 100%);
-  transition: background-image 2s;
+  background: #CCC;
+  background-image: linear-gradient(to bottom right, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.0) 100%);
+  transition: background 0.2s;
 }
-.button:active {
-  background-image: linear-gradient(to bottom right, #E2E2E2 0%, #FFFFFF 100%);
+.button:active, .button.activated {
+  background: #F2BBBB;
+  background-image: linear-gradient(to bottom right, rgba(0, 0, 0, 0.0) 0%, rgba(0, 0, 0, 0.2) 100%);
+  transition: background 0s;
 }
 address { 
   text-align: right;
@@ -146,6 +151,9 @@ function calcCommand(arg1, operation, arg2) {
   if (operation == "div") {
     return arg1 / arg2;
   }
+  if (operation == "mod") {
+    return arg1 % arg2;
+  }
 }
 
 function dobuttonpress(buttonString) {
@@ -201,7 +209,7 @@ function dobuttonpress(buttonString) {
 	    window.result = toNumber(window.activeInput);
 	  }
 	  else if (window.activeInput == "") {
-	    window.result = calCommand(window.result, window.activeCommand, window.result);
+	    window.result = calcCommand(window.result, window.activeCommand, window.result);
 		window.lastCommand = window.activeCommand;
 		window.lastCommandArgument = "" + window.result;
 	  } else {
@@ -268,38 +276,63 @@ function dobuttonpress(buttonString) {
   }
 }
 
+function highlightButton(buttonId) {
+	var elm = document.getElementById(buttonId);
+	if (elm) {
+	    elm.classList.add("activated");
+		window.setTimeout(function() {
+		                      elm.classList.remove("activated");
+							  }, 100);
+    }
+}
+
+function processEventTriggeredButtonCmd(ev, buttonCmd) {
+	dobuttonpress(buttonCmd);
+	var buttonId = "button" + buttonCmd;
+	highlightButton(buttonId);
+	ev.preventDefault(); /* Some browsers go back in history when you press BACKSPACE
+	                        and Opera has lots of interesting actions for numbers. */
+}
+
+var SIMPLE_CMD_MAP = {
+                "r": "sqrt",
+                "s": "sqr",
+                "n": "negate",
+				"+": "add",
+				"-": "sub",
+				"*": "mul",
+				"/": "div",
+				"m": "mod",
+				".": "point",
+				",": "point",
+				};
+
+for (var i = 0; i < 10; i++) {
+  SIMPLE_CMD_MAP[("" + i)] = "" + i;
+}
+CMD_MAP = {};
+for (var key in SIMPLE_CMD_MAP) {
+  CMD_MAP[key.charCodeAt(0)] = SIMPLE_CMD_MAP[key];
+}
+
 function keypressed(ev) {
-  if (ev.charCode >= "0".charCodeAt(0) && 
-      ev.charCode <= "9".charCodeAt(0)) {
-    dobuttonpress(String.fromCharCode(ev.charCode));
-	ev.preventDefault();
-  } else if (ev.charCode == ".".charCodeAt(0) ||
-             ev.charCode == ",".charCodeAt(0)) {
-    dobuttonpress("point");
-	ev.preventDefault();
-  } else if (ev.charCode == "/".charCodeAt(0)) {
-    dobuttonpress("div");
-	ev.preventDefault();
-  } else if (ev.charCode == "*".charCodeAt(0)) {
-    dobuttonpress("mul");
-	ev.preventDefault();
-  } else if (ev.charCode == "-".charCodeAt(0)) {
-    dobuttonpress("sub");
-	ev.preventDefault();
-  } else if (ev.charCode == "+".charCodeAt(0)) {
-    dobuttonpress("add");
-	ev.preventDefault();
+  var cmd = window.CMD_MAP[ev.charCode];
+  if (cmd != undefined) {
+    processEventTriggeredButtonCmd(ev, cmd);
   }
 }
 
 function keydowned(ev) {
+  var buttonCmd = "";
   if (ev.keyCode == 27) { /* ESC */
-    dobuttonpress("esc");
+    buttonCmd = "esc";
   } else if (ev.keyCode == 13) { /* ENTER */
-    dobuttonpress("equals");
+    buttonCmd = "equals";
   } else if (ev.keyCode == 8) { /* BACKSPACE */
-    dobuttonpress("backspace");
-	ev.preventDefault(); /* Some browsers go back in history when you press BACKSPACE. */
+    buttonCmd = "backspace";
+  }
+  if (buttonCmd != "") {
+    processEventTriggeredButtonCmd(ev, buttonCmd);
   }
 }
 
@@ -356,32 +389,6 @@ function addButtons() {
 }
 addButtons();
 </script>
-<!--
-<div class=button onclick="dobuttonpress(this.id.substring(6));" id=buttonesc>C</div>
-<div class=button onclick="dobuttonpress(this.id.substring(6));" id=buttonsqrt>&#8730;x</div>
-<div class=button onclick="dobuttonpress(this.id.substring(6));" id=buttonsqr>x&#xB2;</div>
-<div class=button onclick="dobuttonpress(this.id.substring(6));" id=buttonsub>-</div>
-<br>
-<div class=button onclick="dobuttonpress(this.id.substring(6));" id=button7>7</div>
-<div class=button onclick="dobuttonpress(this.id.substring(6));" id=button8>8</div>
-<div class=button onclick="dobuttonpress(this.id.substring(6));" id=button9>9</div>
-<div class=button onclick="dobuttonpress(this.id.substring(6));" id=buttondiv>/</div>
-<br>
-<div class=button onclick="dobuttonpress(this.id.substring(6));" id=button4>4</div>
-<div class=button onclick="dobuttonpress(this.id.substring(6));" id=button5>5</div>
-<div class=button onclick="dobuttonpress(this.id.substring(6));" id=button6>6</div>
-<div class=button onclick="dobuttonpress(this.id.substring(6));" id=buttonmul>*</div>
-<br>
-<div class=button onclick="dobuttonpress(this.id.substring(6));" id=button1>1</div>
-<div class=button onclick="dobuttonpress(this.id.substring(6));" id=button2>2</div>
-<div class=button onclick="dobuttonpress(this.id.substring(6));" id=button3>3</div>
-<div class=button onclick="dobuttonpress(this.id.substring(6));" id=buttonadd>+</div>
-<br>
-<div class=button onclick="dobuttonpress(this.id.substring(6));" id=button0>0</div>
-<div class=button onclick="dobuttonpress(this.id.substring(6));" id=buttonpoint>.</div>
-<div class=button onclick="dobuttonpress(this.id.substring(6));" id=buttonnegate>&#xB1;</div>
-<div class=button onclick="dobuttonpress(this.id.substring(6));" id=buttonequals>=</div>
--->
 </div></div>
 <hr>
 <address>
